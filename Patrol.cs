@@ -9,34 +9,70 @@ public class Patrol : MonoBehaviour {
     public float speed = 10f;
     private Vector3 pointAPosition;
     private Vector3 pointBPosition;
+    public BoxCollider collider1;
+    bool stopMoving = false;
+    public Animator animation;
     // Use this for initialization
     void Start()
     {
         pointAPosition = new Vector3(pointA.position.x, pointA.position.y, pointA.position.z);
         pointBPosition = new Vector3(pointB.position.x, pointB.position.y, pointB.position.z);
+        animation.SetBool("isMoving", true);
     }
 
     // Update is called once per frame
     void Update()
     {
-        Vector3 thisPosition = new Vector3(transform.position.x, transform.position.y, transform.position.z);
-        if (toPosB)
+        if (stopMoving == false)
         {
-            transform.position = Vector3.MoveTowards(transform.position, pointB.position, speed * Time.deltaTime);
-            if (thisPosition.Equals(pointBPosition))
+
+            Vector3 thisPosition = new Vector3(transform.position.x, transform.position.y, transform.position.z);
+            if (toPosB)
             {
-                //Debug.Log ("Position b");
-                toPosB = false;
+                transform.position = Vector3.MoveTowards(transform.position, pointB.position, speed * Time.deltaTime);
+                Vector3 relPos = pointB.position - transform.position;
+                Quaternion rotation = Quaternion.LookRotation(relPos, Vector3.up);
+                transform.rotation = rotation;
+                if (thisPosition.Equals(pointBPosition))
+                {
+                    //Debug.Log ("Position b");
+                    toPosB = false;
+                }
+            }
+            else
+            {
+                transform.position = Vector3.MoveTowards(transform.position, pointA.position, speed * Time.deltaTime);
+                Vector3 relPos = pointA.position - transform.position;
+                Quaternion rotation = Quaternion.LookRotation(relPos, Vector3.up);
+                transform.rotation = rotation;
+                if (thisPosition.Equals(pointAPosition))
+                {
+                    //Debug.Log ("Position a");
+                    toPosB = true;
+                }
             }
         }
-        else
+        
+       // Debug.Log(toPosB);
+    }
+
+   
+
+    void OnTriggerStay(Collider other)
+    {
+        if (other.gameObject.tag == "Player")
         {
-            transform.position = Vector3.MoveTowards(transform.position, pointA.position, speed * Time.deltaTime);
-            if (thisPosition.Equals(pointAPosition))
-            {
-                //Debug.Log ("Position a");
-                toPosB = true;
-            }
+            stopMoving = true;
+            animation.SetBool("isMoving", false);
         }
     }
+
+    void OnTriggerExit(Collider other)
+    {
+        stopMoving = false;
+        animation.enabled = true;
+        animation.SetBool("isMoving", true);
+    }
+
+
 }
